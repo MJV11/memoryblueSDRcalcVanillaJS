@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Insourcing vs. Outsourcing Calculator</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="calculator-container">
+        <h1>Insourcing vs. Outsourcing Calculator</h1>
+
+        <p>
+            This calculator helps you compare the cost of hiring Sales Development Representatives (SDRs) in-house
+            versus using MemoryBlue's outsourced SDR services. Enter your company-specific values to get a
+            personalized cost comparison.
+        </p>
+
+        <form id="calculator-form" class="calculator-form">
+            <div class="form-container">
+                <h2>Compare Costs:</h2>
+                <div class="form-fields">
+                    <!-- Select Currency -->
+                    <div class="input-group">
+                        <label for="Currency">Select Currency:</label>
+                        <div class="input-with-hint">
+                            <select
+                                id="Currency"
+                                name="Currency"
+                                class="form-input">
+                                <option value="USD">USD - US Dollar</option>
+                                <option value="EUR">EUR - Euro</option>
+                                <option value="GBP">GBP - British Pound</option>
+                                <option value="CAD">CAD - Canadian Dollar</option>
+                                <option value="AUD">AUD - Australian Dollar</option>
+                                <option value="JPY">JPY - Japanese Yen</option>
+                            </select>
+                            <p id="Currency-error" class="error-message"></p>
+                        </div>
+                    </div>
+
+                    <!-- Yearly Salary Per SDR -->
+                    <div class="input-group">
+                        <label for="YearlySalaryPerSDR">Yearly Salary per SDR:</label>
+                        <div class="input-with-hint">
+                            <input
+                                type="number"
+                                id="YearlySalaryPerSDR"
+                                name="YearlySalaryPerSDR"
+                                value="65000"
+                                class="form-input"
+                            />
+                            <p id="YearlySalaryPerSDR-error" class="error-message"></p>
+                            <div class="input-hint info-button">i
+                                <div class="tooltip">The average yearly salary in the US is $65000</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Avg Yearly Commissions Per SDR -->
+                    <div class="input-group">
+                        <label for="AvgYearlyCommissionsPerSDR">Average Yearly Commissions:</label>
+                        <div class="input-with-hint">
+                            <input
+                                type="number"
+                                id="AvgYearlyCommissionsPerSDR"
+                                name="AvgYearlyCommissionsPerSDR"
+                                value="36000"
+                                class="form-input"
+                            />
+                            <p id="AvgYearlyCommissionsPerSDR-error" class="error-message"></p>
+                            <div class="input-hint info-button">i
+                                <div class="tooltip">The average yearly commissions in the US is $30000</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payroll Tax Rate -->
+                    <div class="input-group">
+                        <label for="PayrollTaxRate">Payroll Tax Rate:</label>
+                        <div class="input-with-hint">
+                            <input
+                                type="number"
+                                id="PayrollTaxRate"
+                                name="PayrollTaxRate"
+                                value="7.65"
+                                step="0.01"
+                                class="form-input"
+                            />
+                            <p id="PayrollTaxRate-error" class="error-message"></p>
+                            <div class="input-hint info-button">i
+                                <div class="tooltip">The US base payroll tax rate is 7.65%</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Benefits Rate -->
+                    <div class="input-group">
+                        <label for="BenefitsRate">Benefits Rate (% of Salary):</label>
+                        <div class="input-with-hint">
+                            <input
+                                type="number"
+                                id="BenefitsRate"
+                                name="BenefitsRate"
+                                value="20"
+                                step="0.1"
+                                class="form-input"
+                            />
+                            <p id="BenefitsRate-error" class="error-message"></p>
+                            <div class="input-hint info-button">i
+                                <div class="tooltip">The average US benefits rate for SDRs is near 30%</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SDR Management Cost -->
+                    <div class="input-group">
+                        <label for="SDRManagementCost">Cost to Manage SDR Resources:</label>
+                        <div class="input-with-hint">
+                            <input
+                                type="number"
+                                id="SDRManagementCost"
+                                name="SDRManagementCost"
+                                value="137000"
+                                class="form-input"
+                            />
+                            <p id="SDRManagementCost-error" class="error-message"></p>
+                            <div class="input-hint info-button">i
+                                <div class="tooltip">The average salary of one SDR manager is $137000</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SDRs Seeking To Hire -->
+                    <div class="input-group">
+                        <label for="SDRsSeekingToHire">Number of SDRs Seeking To Hire:</label>
+                        <div class="input-with-hint">
+                            <input
+                                type="number"
+                                id="SDRsSeekingToHire"
+                                name="SDRsSeekingToHire"
+                                value="7"
+                                class="form-input"
+                            />
+                            <p id="SDRsSeekingToHire-error" class="error-message"></p>
+                            <div class="input-hint info-button">i
+                                <div class="tooltip">Enter the number of SDRs you need</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button type="button" id="reset-button" class="btn btn-secondary">Reset Values</button>
+                    <button type="submit" id="calculate-button" class="btn btn-primary">Calculate Costs</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <script src="calculator.js"></script>
+</body>
+</html>
