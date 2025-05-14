@@ -422,8 +422,8 @@ document.addEventListener('DOMContentLoaded', function() {
       return Promise.reject('City and state are required');
     }
 
-    const apiKey = 'AIzaSyDviwjbYNN83RFcPBh7B0KoupXKcZjtO8g';
-    const searchEngineId = 'c244f79be99fa4213'; 
+    const apiKey = '';
+    const searchEngineId = ''; 
     const query = encodeURIComponent(`what is the average sdr salary in ${city}, ${state} exact figure glassdoor`);
     
     try {
