@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
     SDRsSeekingToHire: 7,
     BenefitsRate: 20, // Default 20% of salary for benefits
     State: '',
+    City: '' // Added city field
   };
 
   // Fixed data values
@@ -40,38 +41,51 @@ document.addEventListener('DOMContentLoaded', function() {
       'VA': 0.01, 'WA': 0.0, 'WV': .3, 'WI': 0.0, 'WY': 0.0
   };
 
-  // numbers for the next two sections are a little fudgy because the data sources are not necessarily accurate and hard to retreive
-  // given by google searching "what is the sdr salary in {state} exact figure glassdoor" on May 14, 2025. 
-  const stateSalaryRates = {
-    'AL': 57000, 'AK': 59000, 'AZ': 52000, 'AR': 55000, 'CA': 60000,
-    'CO': 50000, 'CT': 55000, 'DE': 55000, 'FL': 50000, 'GA': 55000,
-    'HI': 55000, 'ID': 53000, 'IL': 53000, 'IN': 53000, 'IA': 55000,
-    'KS': 53000, 'KY': 51000, 'LA': 50000, 'ME': 60000, 'MD': 55000,
-    'MA': 56000, 'MI': 56000, 'MN': 54000, 'MS': 51000, 'MO': 51000,
-    'MT': 51000, 'NE': 53000, 'NV': 53000, 'NH': 53000, 'NJ': 55000,
-    'NM': 55000, 'NY': 60000, 'NC': 53000, 'ND': 58000, 'OH': 52000,
-    'OK': 50000, 'OR': 54000, 'PA': 27000, 'RI': 55000, 'SC': 54000,
-    'SD': 55000, 'TN': 35000, 'TX': 54000, 'UT': 52000, 'VT': 57000,
-    'VA': 51000, 'WA': 59000, 'WV': 48000, 'WI': 53000, 'WY': 52000
-  };
-
-  /** if you try to source these numbers, one thing you'll notice is that the metro areas differ wildly from the state writ large
-   * to balance that, I am choosing the metro areas, assuming that that is where the majority of business will come from, and also
-   * to keep the calculations profitable */ 
-  // given by google searching "what is the sdr total compensation in {state} exact figure glassdoor" on May 14, 2025
-  const stateTotalCompRates = {
-    'AL': 39000, 'AK': 30000, 'AZ': 32000, 'AR': 36000, 'CA': 40000,
-    'CO': 28000, 'CT': 27000, 'DE': 30000, 'FL': 37000, 'GA': 38000,
-    'HI': 25000, 'ID': 25000, 'IL': 35000, 'IN': 36000, 'IA': 38000,
-    'KS': 37000, 'KY': 34000, 'LA': 33000, 'ME': 40000, 'MD': 35000,
-    'MA': 40000, 'MI': 35000, 'MN': 38000, 'MS': 36000, 'MO': 26000,
-    'MT': 34000, 'NE': 39000, 'NV': 36000, 'NH': 36000, 'NJ': 35000,
-    'NM': 30000, 'NY': 39000, 'NC': 39000, 'ND': 32000, 'OH': 30000,
-    'OK': 25000, 'OR': 24000, 'PA': 51000, 'RI': 35000, 'SC': 36000,
-    'SD': 25000, 'TN': 55000, 'TX': 34000, 'UT': 35000, 'VT': 32000,
-    'VA': 29000, 'WA': 40000, 'WV': 33000, 'WI': 33000, 'WY': 35000
-  };
-
+  // City-state mapping for autofill functionality
+  const popularCities = [
+    { city: "New York", state: "NY" },
+    { city: "Los Angeles", state: "CA" },
+    { city: "Chicago", state: "IL" },
+    { city: "Houston", state: "TX" },
+    { city: "Phoenix", state: "AZ" },
+    { city: "Philadelphia", state: "PA" },
+    { city: "San Antonio", state: "TX" },
+    { city: "San Diego", state: "CA" },
+    { city: "Dallas", state: "TX" },
+    { city: "San Jose", state: "CA" },
+    { city: "Austin", state: "TX" },
+    { city: "Jacksonville", state: "FL" },
+    { city: "Fort Worth", state: "TX" },
+    { city: "Columbus", state: "OH" },
+    { city: "San Francisco", state: "CA" },
+    { city: "Charlotte", state: "NC" },
+    { city: "Indianapolis", state: "IN" },
+    { city: "Seattle", state: "WA" },
+    { city: "Denver", state: "CO" },
+    { city: "Washington", state: "DC" },
+    { city: "Boston", state: "MA" },
+    { city: "Nashville", state: "TN" },
+    { city: "Baltimore", state: "MD" },
+    { city: "Oklahoma City", state: "OK" },
+    { city: "Louisville", state: "KY" },
+    { city: "Portland", state: "OR" },
+    { city: "Las Vegas", state: "NV" },
+    { city: "Milwaukee", state: "WI" },
+    { city: "Albuquerque", state: "NM" },
+    { city: "Tucson", state: "AZ" },
+    { city: "Fresno", state: "CA" },
+    { city: "Sacramento", state: "CA" },
+    { city: "Atlanta", state: "GA" },
+    { city: "Kansas City", state: "MO" },
+    { city: "Miami", state: "FL" },
+    { city: "Raleigh", state: "NC" },
+    { city: "Omaha", state: "NE" },
+    { city: "Minneapolis", state: "MN" },
+    { city: "Cleveland", state: "OH" },
+    { city: "Pittsburgh", state: "PA" },
+    { city: "Detroit", state: "MI" },
+    { city: "St. Louis", state: "MO" }
+  ];
 
   // Fetch currency rates on page load
   fetchCurrencyRates();
@@ -82,6 +96,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const resetButton = document.getElementById('reset-button');
   const calculateButton = document.getElementById('calculate-button');
   const stateSelect = document.getElementById('State');
+  const cityInput = document.getElementById('City');
 
   // Add event listeners
   if (currencySelect) {
@@ -94,6 +109,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
   if (stateSelect) {
       stateSelect.addEventListener('change', handleStateChange);
+  }
+
+  if (cityInput) {
+    // Setup autocomplete for city input
+    setupCityAutocomplete(cityInput);
+    
+    // Handle blur event for city input (when user clicks away)
+    cityInput.addEventListener('blur', function() {
+      const selectedCity = cityInput.value.trim();
+      if (selectedCity) {
+        handleCitySelection(selectedCity);
+      }
+    });
   }
 
   if (form) {
@@ -109,13 +137,137 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   /**
+   * Sets up autocomplete functionality for city input
+   * @param {HTMLElement} input - The city input element
+   */
+  function setupCityAutocomplete(input) {
+    // Create a container for the autocomplete items
+    const autocompleteContainer = document.createElement('div');
+    autocompleteContainer.className = 'autocomplete-items';
+    autocompleteContainer.style.display = 'none';
+    autocompleteContainer.style.position = 'absolute';
+    autocompleteContainer.style.zIndex = '99';
+    autocompleteContainer.style.maxHeight = '200px';
+    autocompleteContainer.style.overflowY = 'auto';
+    autocompleteContainer.style.border = '1px solid #ddd';
+    autocompleteContainer.style.backgroundColor = '#fff';
+    autocompleteContainer.style.width = input.offsetWidth + 'px';
+    
+    // Insert the container after the input
+    input.parentNode.insertBefore(autocompleteContainer, input.nextSibling);
+    
+    // Add event listener for input on the city field
+    input.addEventListener('input', function() {
+      const value = this.value.trim();
+      
+      // Close any existing autocomplete lists
+      autocompleteContainer.innerHTML = '';
+      
+      if (!value) {
+        autocompleteContainer.style.display = 'none';
+        return;
+      }
+      
+      // Filter cities based on input
+      const matchingCities = popularCities.filter(item => 
+        item.city.toLowerCase().startsWith(value.toLowerCase())
+      );
+      
+      if (matchingCities.length > 0) {
+        autocompleteContainer.style.display = 'block';
+        
+        // Create a div for each matching city
+        matchingCities.forEach(item => {
+          const itemDiv = document.createElement('div');
+          itemDiv.innerHTML = `<strong>${item.city}</strong>, ${item.state}`;
+          itemDiv.style.padding = '10px';
+          itemDiv.style.cursor = 'pointer';
+          itemDiv.style.borderBottom = '1px solid #ddd';
+          
+          // Add hover effect
+          itemDiv.addEventListener('mouseenter', function() {
+            this.style.backgroundColor = '#e9e9e9';
+          });
+          
+          itemDiv.addEventListener('mouseleave', function() {
+            this.style.backgroundColor = '#fff';
+          });
+          
+          // Add click event
+          itemDiv.addEventListener('click', function() {
+            input.value = item.city;
+            autocompleteContainer.style.display = 'none';
+            
+            // Handle the city selection
+            handleCitySelection(item.city, item.state);
+          });
+          
+          autocompleteContainer.appendChild(itemDiv);
+        });
+      } else {
+        autocompleteContainer.style.display = 'none';
+      }
+    });
+    
+    // Close the autocomplete list when clicking outside
+    document.addEventListener('click', function(e) {
+      if (e.target !== input) {
+        autocompleteContainer.style.display = 'none';
+      }
+    });
+  }
+
+  /**
+   * Handles city selection from autocomplete
+   * @param {string} city - The selected city
+   * @param {string} state - The state code (optional)
+   */
+  function handleCitySelection(place) {
+    // Update city in form data
+    let city = place.split(",")[0];
+    let state = place.split(",")[1];
+    formData.City = city;
+    console.log(city)
+    console.log(state)
+    // If state is provided directly, use it
+    if (state) {
+      console.log(state)
+      formData.State = state;
+      updateTaxRateForState(state);
+      fetchSalaryForLocation(city, state);
+      return;
+    }
+    
+    // Otherwise, try to find the state from our popular cities list
+    const cityData = popularCities.find(item => 
+      item.city.toLowerCase() === city.toLowerCase()
+    );
+    
+    if (cityData) {
+      // We found the city in our list
+      formData.State = cityData.state;
+      updateTaxRateForState(cityData.state);
+      fetchSalaryForLocation(city, cityData.state);
+    } else {
+      // City not found in our list, prompt user to select a state
+      console.log('City not found in our database. Please select a state.');
+      // You could show a notification to the user here
+    }
+  }
+
+  /**
    * Handle state change in dropdown
    * @param {Event} e - The state change event
    */
   function handleStateChange(e) {
     const stateCode = e.target.value;
     formData.State = stateCode;
-    updateFieldsForState(stateCode);
+    updateTaxRateForState(stateCode);
+    
+    // If we have a city, fetch salary data
+    if (formData.City) {
+      fetchSalaryForLocation(formData.City, stateCode);
+    }
   }
 
   /**
@@ -190,39 +342,126 @@ document.addEventListener('DOMContentLoaded', function() {
    * @param {number} value - The new value of the field
    */
   function handleChange(name, value) {
-    const numericValue = parseFloat(value) || 0;
-    formData[name] = numericValue;
-    
+    // Special handling for City field which is a string
+    if (name === 'City') {
+      formData[name] = value;
+    } else {
+      // Convert input to number and ensure it's valid
+      const numericValue = parseFloat(value) || 0;
+      formData[name] = numericValue;
+    }
+
+    // Clear error for this field
     clearErrorForField(name);
   }
 
   /**
-   * Fill suggestions for fields that have not been filled by state selection
+   * Extract the state tax calculation to a separate function
    * @param {string} state - The state code
    */
-  function updateFieldsForState(state) {
+  function updateTaxRateForState(state) {
     if (!state) return;
-
+    
+    // Update tax rate based on selected state
     const stateTaxRate = stateTaxRates[state] || 0;
     const totalTaxRate = 7.65 + stateTaxRate; // Base US rate (7.65%) + state rate
+    
     const taxRateInput = document.getElementById('PayrollTaxRate');
     if (taxRateInput) {
       taxRateInput.value = totalTaxRate.toFixed(2);
       formData.PayrollTaxRate = totalTaxRate;
     }
+  }
 
-    const pay = stateSalaryRates[state] || 60000; 
-    const payInput = document.getElementById('YearlySalaryPerSDR');
-    if (payInput) {
-      payInput.value = pay;
-      formData.YearlySalaryPerSDR = pay;
+  /**
+   * Fetches salary data for a specific city and state
+   * @param {string} city - The city name
+   * @param {string} state - The state code
+   */
+  async function fetchSalaryForLocation(city, state) {
+    if (!city || !state) return;
+    
+    displayLoading('YearlySalaryPerSDR');
+    
+    try {
+      // Fetch salary from Google Search API
+      const salary = await fetchSDRSalaryFromGoogle(city, state);
+      
+      // If we got a valid salary, update the form
+      if (salary) {
+        const salaryInput = document.getElementById('YearlySalaryPerSDR');
+        if (salaryInput) {
+          salaryInput.value = salary;
+          formData.YearlySalaryPerSDR = salary;
+        }
+      } else {
+        const estimatedSalary = 65000;
+        
+        const salaryInput = document.getElementById('YearlySalaryPerSDR');
+        if (salaryInput) {
+          salaryInput.value = estimatedSalary;
+          formData.YearlySalaryPerSDR = estimatedSalary;
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching salary data:', error);
+    } finally {
+      // Remove loading state from salary field
+      removeLoading('YearlySalaryPerSDR', formData.YearlySalaryPerSDR);
+    }
+  }
+
+  /**
+   * Uses Google Search API to find average SDR salary in a specific city and state
+   * @param {string} city - The city name
+   * @param {string} state - The state code
+   * @returns {Promise<number>} The average yearly salary
+   */
+  async function fetchSDRSalaryFromGoogle(city, state) {
+    if (!city || !state) {
+      return Promise.reject('City and state are required');
     }
 
-    const commission = stateTotalCompRates[state] || 35000; 
-    const comInput = document.getElementById('AvgYearlyCommissionsPerSDR');
-    if (comInput) {
-      comInput.value = commission;
-      formData.AvgYearlyCommissionsPerSDR = commission;
+    const apiKey = 'AIzaSyDviwjbYNN83RFcPBh7B0KoupXKcZjtO8g';
+    const searchEngineId = 'c244f79be99fa4213'; 
+    const query = encodeURIComponent(`what is the average sdr salary in ${city}, ${state} exact figure glassdoor`);
+    
+    try {
+      const response = await fetch(
+        `https://www.googleapis.com/customsearch/v1?key=${apiKey}&cx=${searchEngineId}&q=${query}`
+      );
+      console.log("response", response);
+      const data = await response.json();
+      console.log("data", data)
+      if (!data.items || data.items.length === 0) {
+        console.log('No search results found');
+        return null;
+      }
+      
+      // Try to extract salary from the snippet or title of the first few results
+      for (let i = 0; i < Math.min(3, data.items.length); i++) {
+        const item = data.items[i];
+        const text = item.snippet + ' ' + item.title;
+        
+        // Look for salary patterns like "$60,000" or "60,000 dollars" or "average salary of $60,000"
+        const salaryRegex = /(?:average|avg|median)?\s*(?:salary|pay|compensation)?\s*(?:of)?\s*\$?(\d{1,3}(?:,\d{3})*)/i;
+        const match = text.match(salaryRegex);
+        
+        if (match && match[1]) {
+          // Convert the matched salary string to a number
+          const salary = parseInt(match[1].replace(/,/g, ''), 10);
+          if (!isNaN(salary) && salary > 20000 && salary < 200000) { // Sanity check
+            console.log(`Found salary: ${salary} from result: ${text}`);
+            return salary;
+          }
+        }
+      }
+      
+      console.log('Could not extract salary from search results');
+      return null;
+    } catch (error) {
+      console.error('Error fetching salary data from Google:', error);
+      return null;
     }
   }
 
@@ -293,7 +532,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // No negative numbers
     Object.entries(formData).forEach(([key, value]) => {
-      if (key !== 'State' && value < 0) {
+      if (key !== 'City' && key !== 'State' && value < 0) {
         displayError(key, "Value cannot be negative");
         isValid = false;
       }
@@ -333,6 +572,31 @@ document.addEventListener('DOMContentLoaded', function() {
     const inputElement = document.getElementById(fieldName);
     if (inputElement) {
       inputElement.classList.add('error-input');
+    }
+  }
+
+  /**
+   * Display loading state for a field
+   * @param {string} fieldName - The name of the field to show loading state
+   */
+  function displayLoading(fieldName) {
+    const inputElement = document.getElementById(fieldName);
+    if (inputElement) {
+      inputElement.value = 'Loading...';
+      inputElement.disabled = true;
+    }
+  }
+
+  /**
+   * Remove loading state for a field
+   * @param {string} fieldName - The name of the field to remove loading state
+   * @param {any} value - The value to set
+   */
+  function removeLoading(fieldName, value) {
+    const inputElement = document.getElementById(fieldName);
+    if (inputElement) {
+      inputElement.value = value;
+      inputElement.disabled = false;
     }
   }
 
