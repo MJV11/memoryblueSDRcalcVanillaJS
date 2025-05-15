@@ -22,62 +22,30 @@ $results = [
     'benefitsCostPerSDRPerYear' => isset($_GET['benefitsCostPerSDRPerYear']) ? floatval($_GET['benefitsCostPerSDRPerYear']) : 0,
     'MonthlyInfrastructureAndFacilitiesCostPerSDRPerMonth' => isset($_GET['MonthlyInfrastructureAndFacilitiesCostPerSDRPerMonth']) ? floatval($_GET['MonthlyInfrastructureAndFacilitiesCostPerSDRPerMonth']) : 0,
     'managerCostAllocationPerSDRPerYear' => isset($_GET['managerCostAllocationPerSDRPerYear']) ? floatval($_GET['managerCostAllocationPerSDRPerYear']) : 0,
-    'yearlyDirectCostPerSDR' => isset($_GET['yearlyDirectCostPerSDR']) ? floatval($_GET['yearlyDirectCostPerSDR']) : 0,
-    'monthlyDirectCostPerSDR' => isset($_GET['monthlyDirectCostPerSDR']) ? floatval($_GET['monthlyDirectCostPerSDR']) : 0,
-    'yearlyIndirectCostPerSDR' => isset($_GET['yearlyIndirectCostPerSDR']) ? floatval($_GET['yearlyIndirectCostPerSDR']) : 0,
-    'monthlyIndirectCostPerSDR' => isset($_GET['monthlyIndirectCostPerSDR']) ? floatval($_GET['monthlyIndirectCostPerSDR']) : 0,
-    'totalMonthlyInHouseCostPerSDR' => isset($_GET['totalMonthlyInHouseCostPerSDR']) ? floatval($_GET['totalMonthlyInHouseCostPerSDR']) : 0
 ];
 
 $currency = isset($_GET['currency']) ? htmlspecialchars($_GET['currency']) : 'USD';
 
-// Function to format currency based on selected currency
+/**
+ * Summary of formatCurrency
+ * @param mixed $value
+ * @param mixed $currency
+ * @return bool|string
+ */
 function formatCurrency($value, $currency)
 {
     return (new NumberFormatter('en_US', NumberFormatter::CURRENCY))->formatCurrency($value, $currency);
 }
 
-// Function to format percentage
+/**
+ * Summary of formatPercentage
+ * @param mixed $value
+ * @return string
+ */
 function formatPercentage($value)
 {
     return number_format($value, 1) . '%';
 }
-
-// Calculate total monthly cost for all SDRs if they were in-house
-$totalMonthlyCostInHouse = $results['totalMonthlyInHouseCostPerSDR'] * $formData['SDRsSeekingToHire'];
-
-// Calculate MemoryBlue total monthly cost
-$totalMonthlyCostMemoryBlue = $fixedData['MonthlyFeePerSDR'] * $formData['SDRsSeekingToHire'];
-
-// Calculate yearly costs
-$totalYearlyCostInHouse = $totalMonthlyCostInHouse * 12;
-$totalYearlyCostMemoryBlue = $totalMonthlyCostMemoryBlue * 12;
-
-// Calculate cost difference
-$monthlyCostDifference = $totalMonthlyCostInHouse - $totalMonthlyCostMemoryBlue;
-$yearlyCostDifference = $monthlyCostDifference * 12;
-
-// Calculate percentage savings
-$monthlySavingsPercentage = ($monthlyCostDifference / $totalMonthlyCostInHouse) * 100;
-$yearlySavingsPercentage = ($yearlyCostDifference / $totalYearlyCostInHouse) * 100;
-
-// Calculate one-time startup costs
-$totalStartupCostInHouse = $fixedData['RecruitmentCostPerSDR'] + $fixedData['OnboardingAndTrainingCostPerSDR'];
-
-// Calculate first year costs
-$inHouseFirstYearCostPerSDR = ($results['totalMonthlyInHouseCostPerSDR'] * 12) + $totalStartupCostInHouse;
-$memoryBlueFirstYearCostPerSDR = $fixedData['MonthlyFeePerSDR'] * 12;
-
-// Calculate subsequent year costs
-$inHouseSubsequentYearCost = $results['totalMonthlyInHouseCostPerSDR'] * 12;
-$memoryBlueSubsequentYearCost = $fixedData['MonthlyFeePerSDR'] * 12;
-
-// Calculate yearly savings per SDR
-$subsequentYearlySavingsPerSDR = $inHouseSubsequentYearCost - $memoryBlueSubsequentYearCost;
-$firstYearSavingsPerSDR = $inHouseFirstYearCostPerSDR - $memoryBlueFirstYearCostPerSDR;
-
-// Calculate total yearly savings for all SDRs
-$totalSubsequentYearlySavings = $subsequentYearlySavingsPerSDR * $formData['SDRsSeekingToHire'];
 
 // Calculate monthly direct costs breakdown
 $monthlySalary = $formData['YearlySalaryPerSDR'] / 12;
@@ -95,10 +63,41 @@ $totalDirectMonthlyCost = $monthlySalary + $monthlyCommissions + $monthlyPayroll
 
 // Calculate total indirect monthly cost
 $totalIndirectMonthlyCost = $monthlyManagement + $results['MonthlyInfrastructureAndFacilitiesCostPerSDRPerMonth'] + $monthlyRecruiting + $monthlyOnboarding;
+
+
+// Calculate total monthly cost for all SDRs if they were in-house
+$totalMonthlyCostInHouse = ($totalDirectMonthlyCost + $totalIndirectMonthlyCost) * $formData['SDRsSeekingToHire'];
+
+// Calculate MemoryBlue total monthly cost
+$totalMonthlyCostMemoryBlue = $fixedData['MonthlyFeePerSDR'] * $formData['SDRsSeekingToHire'];
+
+// Calculate yearly costs
+$totalYearlyCostInHouse = $totalMonthlyCostInHouse * 12;
+$totalYearlyCostMemoryBlue = $totalMonthlyCostMemoryBlue * 12;
+
+// Calculate percentage savings
+$yearlySavingsPercentage = $totalMonthlyCostInHouse != 0 ? (($totalMonthlyCostInHouse - $totalMonthlyCostMemoryBlue) / $totalMonthlyCostInHouse) * 100 : 0;
+
+// Calculate one-time startup costs
+$totalStartupCostInHouse = $fixedData['RecruitmentCostPerSDR'] + $fixedData['OnboardingAndTrainingCostPerSDR'];
+
+// Calculate first year costs
+$inHouseFirstYearCostPerSDR = ($totalDirectMonthlyCost + $totalIndirectMonthlyCost) * 12 + $totalStartupCostInHouse;
+$memoryBlueFirstYearCostPerSDR = $fixedData['MonthlyFeePerSDR'] * 12;
+
+// Calculate subsequent year costs
+$inHouseSubsequentYearCost = ($totalDirectMonthlyCost + $totalIndirectMonthlyCost) * 12;
+$memoryBlueSubsequentYearCost = $fixedData['MonthlyFeePerSDR'] * 12;
+
+// Calculate yearly savings per SDR
+$subsequentYearlySavingsPerSDR = $inHouseSubsequentYearCost - $memoryBlueSubsequentYearCost;
+$firstYearSavingsPerSDR = $inHouseFirstYearCostPerSDR - $memoryBlueFirstYearCostPerSDR;
+
+// Calculate total yearly savings for all SDRs
+$totalSubsequentYearlySavings = $subsequentYearlySavingsPerSDR * $formData['SDRsSeekingToHire'];
 ?>
 
 <div class="columns">
-
 
     <div>
         <h3>Monthly Direct Costs</h3>
@@ -108,7 +107,8 @@ $totalIndirectMonthlyCost = $monthlyManagement + $results['MonthlyInfrastructure
         <p>Payroll Tax: <?php echo formatCurrency($monthlyPayrollTax, $currency); ?></p>
         <p>Benefits: <?php echo formatCurrency($monthlyBenefits, $currency); ?></p>
         <p>Tools and Licenses:
-            <?php echo formatCurrency($fixedData['MonthlyLicensesAndSalesToolsCostPerSDR'], $currency); ?></p>
+            <?php echo formatCurrency($fixedData['MonthlyLicensesAndSalesToolsCostPerSDR'], $currency); ?>
+        </p>
         <p><strong>Total Direct Monthly Cost: <?php echo formatCurrency($totalDirectMonthlyCost, $currency); ?></strong>
         </p>
     </div>
@@ -140,7 +140,8 @@ $totalIndirectMonthlyCost = $monthlyManagement + $results['MonthlyInfrastructure
         <p>In-House Subsequent Year Cost per SDR: <?php echo formatCurrency($inHouseSubsequentYearCost, $currency); ?>
         </p>
         <p>MemoryBlue Subsequent Year Cost per SDR:
-            <?php echo formatCurrency($memoryBlueSubsequentYearCost, $currency); ?></p>
+            <?php echo formatCurrency($memoryBlueSubsequentYearCost, $currency); ?>
+        </p>
     </div>
 
     <div>
@@ -150,7 +151,124 @@ $totalIndirectMonthlyCost = $monthlyManagement + $results['MonthlyInfrastructure
         <p>Total Yearly Savings: <?php echo formatCurrency($totalSubsequentYearlySavings, $currency); ?></p>
         <p>Yearly Savings Percentage: <?php echo formatPercentage($yearlySavingsPercentage); ?></p>
     </div>
+
+    <div class="chart-container" style="width: 100%; max-width: 800px; margin: 30px auto;">
+        <h3>5-Year Cost Comparison per SDR: In-House vs. memoryBlue</h3>
+        <canvas id="costComparisonChart"></canvas>
+    </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Get values from PHP variables (these would need to be passed from PHP to JS)
+        const inHouseFirstYearCostPerSDR = <?php echo $inHouseFirstYearCostPerSDR; ?>;
+        const memoryBlueFirstYearCostPerSDR = <?php echo $memoryBlueFirstYearCostPerSDR; ?>;
+        const inHouseSubsequentYearCost = <?php echo $inHouseSubsequentYearCost; ?>;
+        const sdrCount = <?php echo $formData['SDRsSeekingToHire']; ?>;
+        const currency = "<?php echo $currency; ?>";
+
+        // Create years array
+        const years = [1, 2, 3, 4, 5];
+        const inHouseCosts = [];
+        const memoryBlueCosts = [];
+
+        // Year 1 includes startup costs AND the first year operational costs for both options
+        inHouseCosts.push(inHouseFirstYearCostPerSDR);
+        memoryBlueCosts.push(memoryBlueFirstYearCostPerSDR);
+
+        // Years 2-5 are just the yearly operational costs
+        for (let i = 1; i <= years.length - 1; i++) {
+            inHouseCosts.push(inHouseSubsequentYearCost);
+            memoryBlueCosts.push(memoryBlueFirstYearCostPerSDR);
+        }
+
+        // Calculate cumulative costs
+        const cumulativeInHouseCosts = [];
+        const cumulativeMemoryBlueCosts = [];
+        let runningInHouseTotal = 0;
+        let runningMemoryBlueTotal = 0;
+
+        years.forEach((year, index) => {
+            runningInHouseTotal += inHouseCosts[index];
+            runningMemoryBlueTotal += memoryBlueCosts[index];
+
+            cumulativeInHouseCosts.push(runningInHouseTotal);
+            cumulativeMemoryBlueCosts.push(runningMemoryBlueTotal);
+        });
+
+        // Format the data for the chart
+        const yearLabels = years.map(year => "Year " + year);
+        const inHouseCostsFormatted = cumulativeInHouseCosts.map(cost => Math.round(cost * 100) / 100);
+        const memoryBlueCostsFormatted = cumulativeMemoryBlueCosts.map(cost => Math.round(cost * 100) / 100);
+
+        // Create the chart
+        const costCtx = document.getElementById('costComparisonChart').getContext('2d');
+        const costChart = new Chart(costCtx, {
+            type: 'line',
+            data: {
+                labels: yearLabels,
+                datasets: [{
+                    label: 'In-House Cumulative Cost',
+                    data: inHouseCostsFormatted,
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 2,
+                    tension: 0.1
+                }, {
+                    label: 'memoryBlue Cumulative Cost',
+                    data: memoryBlueCostsFormatted,
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 2,
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Cumulative Cost (' + currency + ')'
+                        },
+                        ticks: {
+                            callback: function (value) {
+                                return value.toLocaleString('en-US', {
+                                    style: 'currency',
+                                    currency: currency,
+                                    maximumFractionDigits: 0
+                                });
+                            }
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Year'
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                return context.dataset.label + ': ' +
+                                    context.parsed.y.toLocaleString('en-US', {
+                                        style: 'currency',
+                                        currency: currency
+                                    });
+                            }
+                        }
+                    },
+                    legend: {
+                        position: 'top',
+                    }
+                }
+            }
+        });
+    });
+</script>
 <button id="download-pdf-button">Download PDF</button>
 <script>
     document.getElementById('download-pdf-button').addEventListener('click', async () => {
@@ -165,7 +283,7 @@ $totalIndirectMonthlyCost = $monthlyManagement + $results['MonthlyInfrastructure
 
         // Render the element as canvas (high DPI for sharpness)
         const canvas = await html2canvas(content, {
-            scale: 10 
+            scale: 10
         });
 
         const imgData = canvas.toDataURL('image/png');
@@ -195,7 +313,7 @@ $totalIndirectMonthlyCost = $monthlyManagement + $results['MonthlyInfrastructure
     });
 </script>
 
-
 <!-- html2canvas and jsPDF -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>

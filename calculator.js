@@ -231,7 +231,6 @@ document.addEventListener('DOMContentLoaded', function() {
    * @returns {Object} An object containing the calculated costs
    */
   function calculateCosts() {
-    // Destructure values for easier reference
     const {
       YearlySalaryPerSDR,
       AvgYearlyCommissionsPerSDR,
@@ -241,46 +240,16 @@ document.addEventListener('DOMContentLoaded', function() {
       BenefitsRate
     } = formData;
 
-    const {
-      MonthlyLicensesAndSalesToolsCostPerSDR,
-      RecruitmentCostPerSDR,
-      OnboardingAndTrainingCostPerSDR,
-      MonthlyTurnoverRate,
-    } = fixedData;
-
-    // Calculate in-house costs
     const payrollTaxPerSDRPerYear = (YearlySalaryPerSDR + AvgYearlyCommissionsPerSDR) * (PayrollTaxRate / 100);
     const benefitsCostPerSDRPerYear = YearlySalaryPerSDR * (BenefitsRate / 100);
     const MonthlyInfrastructureAndFacilitiesCostPerSDRPerMonth = (YearlySalaryPerSDR * SDRsSeekingToHire + SDRManagementCostPerYear) / SDRsSeekingToHire * 0.1 / 12;
-
-    // Calculate manager cost allocation
-    const managerCostAllocationPerSDRPerYear = (SDRManagementCostPerYear / SDRsSeekingToHire);
-
-    // Calculate total yearly direct cost per SDR
-    const yearlyDirectCostPerSDR = YearlySalaryPerSDR + AvgYearlyCommissionsPerSDR +
-      payrollTaxPerSDRPerYear + benefitsCostPerSDRPerYear + managerCostAllocationPerSDRPerYear;
-
-    // Monthly direct cost per SDR
-    const monthlyDirectCostPerSDR = yearlyDirectCostPerSDR / 12;
-
-    const yearlyIndirectCostPerSDR = MonthlyInfrastructureAndFacilitiesCostPerSDRPerMonth
-      + (OnboardingAndTrainingCostPerSDR * MonthlyTurnoverRate / 100) + (RecruitmentCostPerSDR * MonthlyTurnoverRate / 100)
-      + MonthlyLicensesAndSalesToolsCostPerSDR;
-
-    const monthlyIndirectCostPerSDR = yearlyIndirectCostPerSDR / 12;
-
-    const totalMonthlyInHouseCostPerSDR = monthlyDirectCostPerSDR + monthlyIndirectCostPerSDR;
+    const managerCostAllocationPerSDRPerYear = (SDRManagementCostPerYear * (1 + (PayrollTaxRate / 100))) / SDRsSeekingToHire;
 
     return {
       payrollTaxPerSDRPerYear,
       benefitsCostPerSDRPerYear,
       MonthlyInfrastructureAndFacilitiesCostPerSDRPerMonth,
       managerCostAllocationPerSDRPerYear,
-      yearlyDirectCostPerSDR,
-      monthlyDirectCostPerSDR,
-      yearlyIndirectCostPerSDR,
-      monthlyIndirectCostPerSDR,
-      totalMonthlyInHouseCostPerSDR,
     };
   }
 
@@ -401,33 +370,20 @@ document.addEventListener('DOMContentLoaded', function() {
    * @param {Event} e - The form submission event
    */
   function handleSubmit(e) {
-    e.preventDefault();
-  
-    // Validate all fields
-    const isValid = validateForm();
-  
-    if (isValid) {
+    e.preventDefault();  
+    if (validateForm()) {
       const calculatedResults = calculateCosts();
       
-      // Create URL parameters from all form data, fixed data, and calculated results
       const params = new URLSearchParams();
-      
-      // Add form data parameters
       Object.entries(formData).forEach(([key, value]) => {
         params.append(key, value);
       });
-      
-      // Add fixed data parameters
       Object.entries(fixedData).forEach(([key, value]) => {
         params.append(key, value);
       });
-      
-      // Add calculated results parameters
       Object.entries(calculatedResults).forEach(([key, value]) => {
         params.append(key, value);
       });
-      
-      // Add currency
       params.append('currency', currentCurrency);
       
       // Define the PHP results page URL
