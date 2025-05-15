@@ -164,7 +164,6 @@ $totalSubsequentYearlySavings = $subsequentYearlySavingsPerSDR * $formData['SDRs
         const inHouseFirstYearCostPerSDR = <?php echo $inHouseFirstYearCostPerSDR; ?>;
         const memoryBlueFirstYearCostPerSDR = <?php echo $memoryBlueFirstYearCostPerSDR; ?>;
         const inHouseSubsequentYearCost = <?php echo $inHouseSubsequentYearCost; ?>;
-        const sdrCount = <?php echo $formData['SDRsSeekingToHire']; ?>;
         const currency = "<?php echo $currency; ?>";
 
         // Create years array
@@ -270,48 +269,72 @@ $totalSubsequentYearlySavings = $subsequentYearlySavingsPerSDR * $formData['SDRs
     });
 </script>
 <button id="download-pdf-button">Download PDF</button>
+
 <script>
     document.getElementById('download-pdf-button').addEventListener('click', async () => {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF('p', 'pt', 'a4');
+        const button = document.getElementById('download-pdf-button');
+        
+        // Disable button and change text
+        button.disabled = true;
+        button.textContent = 'Downloading...';
+        
+        try {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('p', 'pt', 'a4');
+            const content = document.querySelector('.columns');
+            if (!content) {
+                alert("Could not find .columns section to export.");
+                return;
+            }
 
-        const content = document.querySelector('.columns');
-        if (!content) {
-            alert("Could not find .columns section to export.");
-            return;
-        }
+            // Render the element as canvas (high DPI for sharpness)
+            const canvas = await html2canvas(content, {
+                scale: 10
+            });
 
-        // Render the element as canvas (high DPI for sharpness)
-        const canvas = await html2canvas(content, {
-            scale: 10
-        });
+            const imgData = canvas.toDataURL('image/png');
 
-        const imgData = canvas.toDataURL('image/png');
+            // Convert canvas dimensions to A4 PDF scale
+            const pageWidth = 595.28; // A4 width in pt
+            const pageHeight = 841.89; // A4 height in pt
+            const imgWidth = pageWidth;
+            const imgHeight = canvas.height * imgWidth / canvas.width;
 
-        // Convert canvas dimensions to A4 PDF scale
-        const pageWidth = 595.28; // A4 width in pt
-        const pageHeight = 841.89; // A4 height in pt
-        const imgWidth = pageWidth;
-        const imgHeight = canvas.height * imgWidth / canvas.width;
+            let heightLeft = imgHeight;
+            let position = 0;
 
-        let heightLeft = imgHeight;
-        let position = 0;
-
-        // First page
-        doc.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
-
-        // Add more pages if needed
-        while (heightLeft > 0) {
-            position -= pageHeight;
-            doc.addPage();
+            // First page
             doc.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
             heightLeft -= pageHeight;
-        }
 
-        doc.save('results.pdf');
+            // Add more pages if needed
+            while (heightLeft > 0) {
+                position -= pageHeight;
+                doc.addPage();
+                doc.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+            }
+
+            doc.save('results.pdf');
+        } catch (error) {
+            console.error('Error generating PDF:', error);
+            alert('An error occurred while generating the PDF.');
+        } finally {
+            // Re-enable button and restore text after download completes or fails
+            setTimeout(() => {
+                button.disabled = false;
+                button.textContent = 'Download PDF';
+            }, 1000); // Small delay to ensure the download has started
+        }
     });
 </script>
+<style>
+    .download-btn:disabled {
+        background-color: #cccccc;
+        color: #888888;
+        cursor: not-allowed;
+    }
+</style>
 
 <!-- html2canvas and jsPDF -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
