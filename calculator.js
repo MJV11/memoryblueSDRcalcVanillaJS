@@ -227,10 +227,11 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   /**
-   * Calculates costs based on form data
-   * @returns {Object} An object containing the calculated costs
+   * Pure function: calculates costs from provided input data
+   * @param {Object} input - calculation inputs
+   * @returns {Object} calculated costs
    */
-  function calculateCosts() {
+  function computeCostsForInput(input) {
     const {
       YearlySalaryPerSDR,
       AvgYearlyCommissionsPerSDR,
@@ -238,7 +239,7 @@ document.addEventListener('DOMContentLoaded', function() {
       SDRManagementCostPerYear,
       SDRsSeekingToHire,
       BenefitsRate
-    } = formData;
+    } = input;
 
     const payrollTaxPerSDRPerYear = (YearlySalaryPerSDR + AvgYearlyCommissionsPerSDR) * (PayrollTaxRate / 100);
     const benefitsCostPerSDRPerYear = YearlySalaryPerSDR * (BenefitsRate / 100);
@@ -251,6 +252,14 @@ document.addEventListener('DOMContentLoaded', function() {
       MonthlyInfrastructureAndFacilitiesCostPerSDRPerMonth,
       managerCostAllocationPerSDRPerYear,
     };
+  }
+
+  /**
+   * Calculates costs based on current form data
+   * @returns {Object} An object containing the calculated costs
+   */
+  function calculateCosts() {
+    return computeCostsForInput(formData);
   }
 
   /**
@@ -427,4 +436,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     clearErrors();
   }
+
+  // Expose a minimal API for testing to consume
+  window.Calculator = {
+    computeCostsForInput: computeCostsForInput,
+    stateTaxRates: stateTaxRates,
+    stateSalaryRates: stateSalaryRates,
+    stateTotalCompRates: stateTotalCompRates
+  };
 });
